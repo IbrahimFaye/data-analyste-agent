@@ -1,0 +1,5 @@
+duckdb>=1.0.0
+groq>=0.11.0
+python-dotenv>=1.0.0
+matplotlib>=3.8.0
+streamlit>=1.30.0
