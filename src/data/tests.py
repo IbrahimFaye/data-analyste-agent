@@ -1,4 +1,3 @@
-# vérif.py
 import duckdb
 con = duckdb.connect("data/sales.duckdb")
 

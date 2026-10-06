@@ -8,7 +8,7 @@ La base contient les tables suivantes :
 
 Les segments clients sont : Retail, Wholesale, VIP.
 Les catégories produits sont : Electronics, Clothing, Home, Sports.
-La période couverte est 2023-01-01 à 2024-12-31.
+La période couverte est 2023-01-01 à 2026-10-01.
 
 ## RÈGLE ABSOLUE — À LIRE EN PREMIER
 **Tu ne réponds JAMAIS à une question de données sans avoir D'ABORD exécuté

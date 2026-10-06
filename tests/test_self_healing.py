@@ -1,9 +1,3 @@
-"""
-Test v2 : on force le LLM à recevoir un FAUX schéma.
-Cette fois on vérifie qu'il (1) détecte l'incohérence, (2) corrige,
-(3) EXÉCUTE le SQL, (4) donne les CHIFFRES.
-"""
-
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -52,7 +46,6 @@ def test_self_healing_v2():
             for tc in msg["tool_calls"]:
                 print(f"  • {tc['function']['name']}({tc['function']['arguments'][:100]})")
     
-    # Vérification automatique
     print(f"\n--- Vérification ---")
     tools_used = [
         tc["function"]["name"]

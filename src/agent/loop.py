@@ -10,7 +10,7 @@ from src.tools import ALL_TOOLS
 from src.tools.sql_tools import execute_tool
 from src.tools.plot_tools import reset_generated_charts, get_generated_charts
 
-MAX_TURNS = 10 
+MAX_TURNS = 20
 
 
 def run_agent(
@@ -19,7 +19,6 @@ def run_agent(
     verbose: bool = True,
 ) -> dict:
 
-    reset_generated_charts()
     """
     Exécute l'agent sur une question, avec mémoire conversationnelle optionnelle.
 
@@ -37,6 +36,7 @@ def run_agent(
             "turns":    int,         # nombre de tours LLM consommés
         }
     """
+    reset_generated_charts()
     if history is None:
         history = []
 

@@ -1,50 +1,33 @@
-"""
-Génère un dataset de ventes réaliste dans DuckDB.
-Simule 2 ans de ventes e-commerce (2023-2024) avec :
-- croissance globale
-- saisonnalité (pics nov/déc)
-- produits avec trends différents
-- anomalies ponctuelles
-"""
 
 import duckdb
 import random
 from datetime import date, timedelta
 from pathlib import Path
 
-# ============================================================
-# 0. CONFIGURATION
-# ============================================================
 random.seed(42) 
 
 DB_PATH = Path("data/sales.duckdb")
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 START_DATE = date(2023, 1, 1)
-END_DATE = date(2024, 12, 31)
-
-# ============================================================
-# 1. DONNÉES DE RÉFÉRENCE (produits, clients)
-# ============================================================
+END_DATE = date(2026, 10, 6)
 
 CATEGORIES = ["Electronics", "Clothing", "Home", "Sports"]
 
-# Chaque produit = (nom, catégorie, prix unitaire, trend de croissance)
-# trend > 1.0 → produit qui monte ; trend < 1.0 → produit qui décline
 PRODUCTS = [
     ("Laptop Pro",       "Electronics", 1200.0, 1.25),
     ("Wireless Mouse",   "Electronics",   35.0, 1.10),
-    ("4K Monitor",       "Electronics",  450.0, 1.35),  # ⭐ star montante
+    ("4K Monitor",       "Electronics",  450.0, 1.35),  
     ("USB-C Hub",        "Electronics",   60.0, 0.90),
     ("Smartphone X",     "Electronics",  900.0, 1.05),
-    ("T-Shirt Basic",    "Clothing",      25.0, 0.85),  # 📉 déclin
+    ("T-Shirt Basic",    "Clothing",      25.0, 0.85),  
     ("Jeans Slim",       "Clothing",      80.0, 1.00),
     ("Hoodie Premium",   "Clothing",      95.0, 1.15),
     ("Sneakers Run",     "Clothing",     140.0, 1.20),
     ("Jacket Winter",    "Clothing",     180.0, 0.95),
     ("Coffee Maker",     "Home",         150.0, 1.08),
     ("Blender Pro",      "Home",         120.0, 0.92),
-    ("Air Purifier",     "Home",         250.0, 1.40),  # ⭐ star montante
+    ("Air Purifier",     "Home",         250.0, 1.40),  
     ("Desk Lamp",        "Home",          45.0, 1.00),
     ("Vacuum Cleaner",   "Home",         300.0, 1.12),
     ("Yoga Mat",         "Sports",        40.0, 1.18),
@@ -65,37 +48,23 @@ LAST_NAMES = ["Martin", "Bernard", "Dubois", "Thomas", "Robert",
               "Petit", "Durand", "Leroy", "Moreau", "Simon",
               "Laurent", "Lefebvre", "Michel", "Garcia", "David"]
 
-# ============================================================
-# 2. HELPERS
-# ============================================================
-
 def seasonal_factor(d: date) -> float:
-    """Retourne un multiplicateur de saisonnalité pour une date."""
     month = d.month
     if month in (11, 12):
-        return 1.6      # Black Friday + Noël
+        return 1.6      
     if month == 6:
-        return 1.2      # soldes d'été
+        return 1.2     
     if month in (1, 2):
-        return 0.75     # creux post-fêtes
+        return 0.75    
     return 1.0
 
 
 def growth_factor(d: date, trend: float) -> float:
-    """
-    Applique une croissance progressive selon le trend du produit.
-    Au 1er jour → 1.0 ; au dernier jour → trend.
-    Interpolation linéaire dans le temps.
-    """
     total_days = (END_DATE - START_DATE).days
     elapsed = (d - START_DATE).days
     progress = elapsed / total_days
     return 1.0 + (trend - 1.0) * progress
 
-
-# ============================================================
-# 3. CRÉATION DES TABLES
-# ============================================================
 
 con = duckdb.connect(str(DB_PATH))
 
@@ -132,10 +101,6 @@ CREATE TABLE sales (
 )
 """)
 
-# ============================================================
-# 4. INSERTION DES PRODUITS
-# ============================================================
-
 product_rows = []
 for pid, (name, cat, price, _trend) in enumerate(PRODUCTS, start=1):
     product_rows.append((pid, name, cat, price))
@@ -144,10 +109,6 @@ con.executemany(
     "INSERT INTO products VALUES (?, ?, ?, ?)",
     product_rows,
 )
-
-# ============================================================
-# 5. INSERTION DES CLIENTS
-# ============================================================
 
 customer_rows = []
 for cid in range(1, 201):
@@ -161,11 +122,6 @@ con.executemany(
     customer_rows,
 )
 
-# ============================================================
-# 6. GÉNÉRATION DES VENTES
-# ============================================================
-
-# Pondération des clients : VIP achètent plus souvent
 customer_weights = []
 for cid in range(1, 201):
     seg = customer_rows[cid - 1][3]
@@ -176,27 +132,28 @@ for cid in range(1, 201):
     else:
         customer_weights.append(1.0)
 
-# Dates d'anomalies (pics suspects)
-anomaly_dates = {date(2023, 7, 15), date(2024, 3, 22)}
+anomaly_dates = {
+    date(2023, 7, 15),
+    date(2024, 3, 22),
+    date(2025, 8, 10),   
+    date(2026, 2, 14), 
+}
 
-BASE_SALES_PER_DAY = 7  # moyenne de ventes par jour (avant saisonnalité)
+BASE_SALES_PER_DAY = 7  
 
 sales_rows = []
 sale_id = 1
 
 current = START_DATE
 while current <= END_DATE:
-    # Nombre de ventes ce jour-là
     n_sales = BASE_SALES_PER_DAY
     n_sales = int(n_sales * seasonal_factor(current))
     n_sales = random.randint(max(1, n_sales - 3), n_sales + 3)
 
-    # Anomalie ?
     if current in anomaly_dates:
         n_sales *= 5
 
     for _ in range(n_sales):
-        # Choix du produit (pondéré par son trend à cette date)
         weights = [
             growth_factor(current, trend)
             for (_n, _c, _p, trend) in PRODUCTS
@@ -205,13 +162,10 @@ while current <= END_DATE:
         product = PRODUCTS[pid - 1]
         unit_price = product[2]
 
-        # Choix du client (pondéré par segment)
         cid = random.choices(range(1, 201), weights=customer_weights)[0]
 
-        # Quantité
         quantity = random.choices([1, 2, 3, 4, 5], weights=[5, 3, 1, 1, 0.5])[0]
 
-        # Revenu avec petite variation aléatoire (±10%)
         revenue = quantity * unit_price * random.uniform(0.9, 1.1)
 
         sales_rows.append((

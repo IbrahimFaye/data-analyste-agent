@@ -1,7 +1,6 @@
 """
 Tool d'analyse statistique.
 Prend une série de valeurs + labels et retourne un résumé complet
-calculé par PYTHON (pas par le LLM). Fiable et reproductible.
 """
 
 import statistics

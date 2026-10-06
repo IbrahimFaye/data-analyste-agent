@@ -12,30 +12,25 @@ def test_conversation():
     
     history = []
     
-    # Tour 1
     print("\n>>> Question 1 : CA total 2024")
     r1 = run_agent("Quel est le chiffre d'affaires total en 2024 ?", history=history)
     print(f"\n💬 {r1['answer'][:300]}")
     history = r1["history"]
     
-    # Tour 2 : question de suivi — nécessite la mémoire
     print("\n>>> Question 2 : Et en 2023 ? (suivi)")
     r2 = run_agent("Et en 2023 ?", history=history)
     print(f"\n💬 {r2['answer'][:300]}")
     history = r2["history"]
     
-    # Tour 3 : comparaison — nécessite les deux
     print("\n>>> Question 3 : Compare les deux (suivi)")
     r3 = run_agent("Compare les deux années.", history=history)
     print(f"\n💬 {r3['answer'][:400]}")
     history = r3["history"]
     
-    # Tour 4 : graphique — nécessite le contexte
     print("\n>>> Question 4 : Fais-moi un graphique (suivi)")
     r4 = run_agent("Fais-moi un graphique comparatif.", history=history)
     print(f"\n💬 {r4['answer'][:400]}")
     
-    # Vérifications
     print("\n" + "=" * 70)
     print("VÉRIFICATIONS")
     print("=" * 70)

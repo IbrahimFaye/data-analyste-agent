@@ -18,7 +18,6 @@ def test_chart():
     print(f"\n📝 RÉPONSE FINALE :\n{result['answer']}")
     print(f"\n(tours: {result['turns']})")
     
-    # Vérifier qu'un fichier a bien été créé
     outputs = list(Path("outputs").glob("*.png"))
     print(f"\n📁 Graphiques présents dans outputs/ : {len(outputs)}")
     for f in outputs:

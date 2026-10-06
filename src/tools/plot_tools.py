@@ -4,7 +4,7 @@ Approche : utilise le DataFrame du DERNIER run_sql pour tracer.
 """
 
 import matplotlib
-matplotlib.use("Agg")  # backend sans écran — obligatoire en script/server
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import uuid

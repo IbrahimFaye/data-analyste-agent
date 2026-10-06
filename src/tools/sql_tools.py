@@ -3,13 +3,11 @@ import duckdb
 from pathlib import Path
 
 DB_PATH = (Path(__file__).parent.parent.parent / "data" / "sales.duckdb").resolve()
-# ---------- Exécution ----------
 
 def _connect():
     """Ouvre une connexion read-only à DuckDB."""
     return duckdb.connect(str(DB_PATH), read_only=True)
 
-# État partagé : dernier résultat SQL (utilisé par plot_chart)
 _LAST_RESULT = {"df": None, "sql": None}
 
 def get_last_result():
@@ -24,7 +22,6 @@ def run_sql(query: str) -> str:
     """
     query = query.strip().rstrip(";")
     
-    # Sécurité : on n'autorise que du SELECT
     if not query.lower().lstrip().startswith("select"):
         return "❌ Erreur : seules les requêtes SELECT sont autorisées."
     
@@ -42,7 +39,6 @@ def run_sql(query: str) -> str:
     if df.empty:
         return "Aucun résultat."
     
-    # Tronquer pour ne pas exploser le contexte du LLM
     truncated = df.head(50)
     header = " | ".join(str(c) for c in truncated.columns)
     sep = "-" * len(header)
@@ -78,7 +74,6 @@ def describe_table(table_name: str) -> str:
     return "\n".join(lines)
 
 
-# ---------- Définitions (le contrat vu par le LLM) ----------
 
 TOOL_DEFINITIONS = [
     {
@@ -125,7 +120,6 @@ TOOL_DEFINITIONS = [
     },
 ]
 
-# ---------- Dispatch ----------
 
 def execute_tool(name: str, args: dict) -> str:
     if name == "list_tables":

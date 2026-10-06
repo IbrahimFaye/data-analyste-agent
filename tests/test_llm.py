@@ -7,7 +7,6 @@ from src.llm.client import chat
 
 
 def test_simple():
-    """Test 1 : question simple, réponse simple."""
     print("=" * 60)
     print("TEST 1 : appel simple")
     print("=" * 60)
@@ -23,7 +22,6 @@ def test_simple():
 
 
 def test_system_prompt():
-    """Test 2 : le system prompt change le comportement."""
     print("=" * 60)
     print("TEST 2 : system prompt en JSON")
     print("=" * 60)
@@ -41,7 +39,6 @@ def test_system_prompt():
 
 
 def test_multi_turn():
-    """Test 3 : conversation multi-tours (le LLM 'se souvient' car on renvoie tout)."""
     print("=" * 60)
     print("TEST 3 : conversation multi-tours")
     print("=" * 60)
