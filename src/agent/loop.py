@@ -1,7 +1,3 @@
-"""
-Boucle agentique ReAct avec mémoire conversationnelle.
-C'est ici que tout se joue : le LLM décide, les tools exécutent, on boucle.
-"""
 
 import json
 from src.llm.client import chat
@@ -40,35 +36,25 @@ def run_agent(
     if history is None:
         history = []
 
-    # ============================================================
-    # 1. Construction des messages
-    #    [system] + [historique passé] + [nouvelle question]
-    # ============================================================
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        *history,                                          # <-- la mémoire
+        *history,                                          
         {"role": "user",   "content": user_question},
     ]
 
-    # ============================================================
-    # 2. Boucle ReAct
-    # ============================================================
-    response = None   # pour le cas MAX_TURNS atteint sans réponse
+    response = None   
 
     for turn in range(1, MAX_TURNS + 1):
         if verbose:
             print(f"\n--- Tour {turn} ---")
 
-        # 2.1 — On demande au LLM ce qu'il veut faire
         response = chat(messages, tools=ALL_TOOLS)
 
-        # 2.2 — Cas 1 : le LLM a fini (pas de tool_call)
         if not response.tool_calls:
             if verbose:
                 print(f"✅ Fin de la boucle au tour {turn}.")
 
-            # On enrichit l'historique conversationnel :
-            # on n'ajoute QUE la question et la réponse finale (pas les tools)
+            
             new_history = history + [
                 {"role": "user",      "content": user_question},
                 {"role": "assistant", "content": response.content},
@@ -76,17 +62,15 @@ def run_agent(
 
             return {
                 "answer":   response.content,
-                "messages": messages,      # tout le tour (debug)
-                "history":  new_history,   # version épurée (pour la suite)
+                "messages": messages,      
+                "history":  new_history,   
                 "turns":    turn,
                 "artifacts": get_generated_charts(),
             }
 
-        # 2.3 — Cas 2 : le LLM veut appeler des outils
-        # 2.3a — Ajouter la réponse de l'assistant (avec tool_calls) à l'historique
         messages.append({
             "role": "assistant",
-            "content": response.content,   # souvent None quand il y a des tools
+            "content": response.content,  
             "tool_calls": [
                 {
                     "id":   tc.id,
@@ -100,7 +84,6 @@ def run_agent(
             ],
         })
 
-        # 2.3b — Exécuter chaque tool et ajouter le résultat
         for tool_call in response.tool_calls:
             name     = tool_call.function.name
             raw_args = tool_call.function.arguments
@@ -112,8 +95,7 @@ def run_agent(
             try:
                 result = execute_tool(name, args)
             except Exception as e:
-                # On ne laisse JAMAIS une exception casser la boucle.
-                # On renvoie l'erreur au LLM pour qu'il s'adapte.
+               
                 result = f"❌ Erreur d'exécution du tool '{name}': {e}"
 
             if verbose:
@@ -126,9 +108,6 @@ def run_agent(
                 "content":      str(result),
             })
 
-    # ============================================================
-    # 3. Sécurité : MAX_TURNS atteint sans conclusion
-    # ============================================================
     fallback_answer = (
         f"⚠️ L'agent n'a pas conclu en {MAX_TURNS} tours. "
         f"Dernier message : {response.content if response and response.content else '(vide)'}"

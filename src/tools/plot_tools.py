@@ -1,7 +1,3 @@
-"""
-Tool de génération de graphiques.
-Approche : utilise le DataFrame du DERNIER run_sql pour tracer.
-"""
 
 import matplotlib
 matplotlib.use("Agg")

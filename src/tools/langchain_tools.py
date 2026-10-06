@@ -1,6 +1,3 @@
-"""
-Wrappers LangChain des tools existants.
-"""
 
 from langchain_core.tools import tool
 

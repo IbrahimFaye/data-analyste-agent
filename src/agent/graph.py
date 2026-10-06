@@ -1,7 +1,3 @@
-"""
-Agent LangGraph : version déclarative de la boucle ReAct.
-Remplace src/agent/loop.py (garde l'ancien pour comparaison).
-"""
 
 from typing import Annotated, TypedDict
 from langgraph.graph import StateGraph, START, END
@@ -15,22 +11,13 @@ from src.tools.plot_tools import reset_generated_charts, get_generated_charts
 
 from src.tools.langchain_tools import LANGCHAIN_TOOLS
 
-# ============================================================
-# 1. STATE
-# ============================================================
 class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
 
 
-# ============================================================
-# 2. LLM avec tools liés
-# ============================================================
 llm = get_langchain_llm()
 llm_with_tools = llm.bind_tools(LANGCHAIN_TOOLS)
 
-# ============================================================
-# 3. NODES
-# ============================================================
 def agent_node(state: AgentState) -> dict:
     """Le LLM décide : appeler un tool ou répondre."""
     messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
@@ -41,9 +28,6 @@ def agent_node(state: AgentState) -> dict:
 tool_node = ToolNode(LANGCHAIN_TOOLS)
 
 
-# ============================================================
-# 4. ROUTING (conditional edge)
-# ============================================================
 def should_continue(state: AgentState) -> str:
     """Si le dernier message a des tool_calls → tools, sinon → END."""
     last_message = state["messages"][-1]
@@ -52,9 +36,6 @@ def should_continue(state: AgentState) -> str:
     return END
 
 
-# ============================================================
-# 5. CONSTRUCTION DU GRAPHE
-# ============================================================
 graph_builder = StateGraph(AgentState)
 
 graph_builder.add_node("agent", agent_node)
@@ -66,14 +47,11 @@ graph_builder.add_conditional_edges(
     should_continue,
     {"tools": "tools", END: END},
 )
-graph_builder.add_edge("tools", "agent")   # ← LA boucle ReAct
+graph_builder.add_edge("tools", "agent")  
 
 graph = graph_builder.compile()
 
 
-# ============================================================
-# 6. API COMPATIBLE avec ton run_agent actuel
-# ============================================================
 def run_agent_langgraph(user_question, history=None, verbose=True):
     """
     Même signature que run_agent, mais utilise le graphe LangGraph.
@@ -97,7 +75,7 @@ def run_agent_langgraph(user_question, history=None, verbose=True):
         for event in graph.stream(
             inputs,
             stream_mode="values",
-            config={"recursion_limit": 15},   # ⬅️ garde-fou
+            config={"recursion_limit": 15},   
         ):
             final_state = event
             if verbose:
@@ -106,7 +84,6 @@ def run_agent_langgraph(user_question, history=None, verbose=True):
                     for tc in last.tool_calls:
                         print(f"🔧 Tool: {tc['name']}({tc['args']})")
     except Exception as e:
-        # Cas rare : recursion_limit atteint
         return {
             "answer": f"⚠️ L'agent n'a pas conclu : {e}",
             "messages": final_state["messages"] if final_state else [],

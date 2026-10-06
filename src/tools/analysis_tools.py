@@ -1,7 +1,3 @@
-"""
-Tool d'analyse statistique.
-Prend une série de valeurs + labels et retourne un résumé complet
-"""
 
 import statistics
 from src.tools.sql_tools import get_last_result
